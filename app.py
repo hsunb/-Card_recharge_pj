@@ -275,6 +275,20 @@ def reject_request(request_id):
     return redirect(url_for('admin_dashboard'))
 
 
+@app.route('/delete-account')
+@login_required
+def delete_account():
+    if current_user.is_admin:
+        return redirect(url_for('admin_dashboard'))
+    user = User.query.get(current_user.id)
+    ChargeRequest.query.filter_by(user_id=user.id).delete()
+    logout_user()
+    db.session.delete(user)
+    db.session.commit()
+    flash('회원 탈퇴가 완료되었습니다.')
+    return redirect(url_for('index'))
+
+
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
