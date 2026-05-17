@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수원대 통학버스 카드 충전</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">🚌 수원대 버스카드 충전</a>
+            <div class="nav-links">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin_dashboard') }}">관리자 페이지</a>
+                    {% else %}
+                        <a href="{{ url_for('dashboard') }}">내 충전 내역</a>
+                        <a href="{{ url_for('new_request') }}">충전 요청</a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}">로그아웃</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">로그인</a>
+                    <a href="{{ url_for('register') }}">회원가입</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

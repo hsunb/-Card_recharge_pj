@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-container">
+    <h2>회원가입</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label>학번 (8자리)</label>
+            <input type="text" name="student_id" maxlength="8" placeholder="ex) 20241234" required>
+        </div>
+        <div class="form-group">
+            <label>이름</label>
+            <input type="text" name="name" placeholder="실명을 입력해주세요" required>
+        </div>
+        <div class="form-group">
+            <label>이메일</label>
+            <input type="email" name="email" placeholder="알림 수신용 이메일" required>
+        </div>
+        <div class="form-group">
+            <label>입금자명</label>
+            <input type="text" name="depositor_name" placeholder="학교 계좌 입금 시 사용할 이름" required>
+            <small>입금 시 이 이름으로 보내주셔야 합니다.</small>
+        </div>
+        <div class="form-group">
+            <label>비밀번호</label>
+            <input type="password" name="password" placeholder="비밀번호" required>
+        </div>
+        <div class="form-group">
+            <label>비밀번호 확인</label>
+            <input type="password" name="password2" placeholder="비밀번호 재입력" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">회원가입</button>
+    </form>
+    <p class="form-footer">이미 계정이 있으신가요? <a href="{{ url_for('login') }}">로그인</a></p>
+</div>
+{% endblock %}

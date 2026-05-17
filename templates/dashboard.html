@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h2>안녕하세요, {{ current_user.name }}님</h2>
+        <a href="{{ url_for('new_request') }}" class="btn btn-primary">새 충전 요청</a>
+    </div>
+
+    <div class="user-info-card">
+        <p><strong>학번:</strong> {{ current_user.student_id }}</p>
+        <p><strong>입금자명:</strong> {{ current_user.depositor_name }}</p>
+        <p class="notice">⚠️ 학교 계좌 입금 시 위 입금자명으로 보내주세요.</p>
+    </div>
+
+    <h3>충전 요청 내역</h3>
+    {% if requests %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>요청일</th>
+                    <th>충전금액</th>
+                    <th>입금날짜</th>
+                    <th>상태</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td>{{ req.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ '{:,}'.format(req.amount) }}원</td>
+                    <td>{{ req.deposit_date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <span class="status status-{{ req.status }}">{{ req.status }}</span>
+                        {% if req.status == '거절' and req.reject_reason %}
+                            <br><small class="reject-reason">사유: {{ req.reject_reason }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if req.status == '대기중' %}
+                            <a href="{{ url_for('edit_request', request_id=req.id) }}" class="btn btn-small">수정</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state">
+            <p>아직 충전 요청 내역이 없습니다.</p>
+            <a href="{{ url_for('new_request') }}" class="btn btn-primary">첫 충전 요청하기</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="dashboard">
+    <h2>관리자 페이지</h2>
+
+    <h3>대기 중인 요청 ({{ pending|length }}건)</h3>
+    {% if pending %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>요청일</th>
+                    <th>학번</th>
+                    <th>이름</th>
+                    <th>입금자명</th>
+                    <th>충전금액</th>
+                    <th>입금날짜</th>
+                    <th>처리</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in pending %}
+                <tr>
+                    <td>{{ req.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ req.user.student_id }}</td>
+                    <td>{{ req.user.name }}</td>
+                    <td>{{ req.user.depositor_name }}</td>
+                    <td>{{ '{:,}'.format(req.amount) }}원</td>
+                    <td>{{ req.deposit_date.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('complete_request', request_id=req.id) }}" style="display:inline">
+                            <button type="submit" class="btn btn-success btn-small" onclick="return confirm('처리완료 하시겠습니까?')">완료</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('reject_request', request_id=req.id) }}" style="display:inline" class="reject-form">
+                            <input type="text" name="reason" placeholder="거절 사유" class="reason-input">
+                            <button type="submit" class="btn btn-danger btn-small">거절</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state">
+            <p>대기 중인 요청이 없습니다.</p>
+        </div>
+    {% endif %}
+
+    <h3 style="margin-top: 40px;">최근 처리 내역</h3>
+    {% if completed %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>처리일</th>
+                    <th>학번</th>
+                    <th>이름</th>
+                    <th>충전금액</th>
+                    <th>상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in completed %}
+                <tr>
+                    <td>{{ req.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ req.user.student_id }}</td>
+                    <td>{{ req.user.name }}</td>
+                    <td>{{ '{:,}'.format(req.amount) }}원</td>
+                    <td><span class="status status-{{ req.status }}">{{ req.status }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state">
+            <p>처리 내역이 없습니다.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

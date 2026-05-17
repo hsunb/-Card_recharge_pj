@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-container">
+    <h2>로그인</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label>학번</label>
+            <input type="text" name="student_id" maxlength="8" placeholder="8자리 학번" required>
+        </div>
+        <div class="form-group">
+            <label>비밀번호</label>
+            <input type="password" name="password" placeholder="비밀번호" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">로그인</button>
+    </form>
+    <p class="form-footer">
+        계정이 없으신가요? <a href="{{ url_for('register') }}">회원가입</a><br>
+        <a href="{{ url_for('forgot_password') }}">비밀번호를 잊으셨나요?</a>
+    </p>
+</div>
+{% endblock %}
