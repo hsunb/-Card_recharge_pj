@@ -23,6 +23,7 @@
                     {% else %}
                         <a href="{{ url_for('dashboard') }}">내 충전 내역</a>
                         <a href="{{ url_for('new_request') }}">충전 요청</a>
+                        <a href="{{ url_for('mypage') }}">마이페이지</a>
                     {% endif %}
                     <a href="{{ url_for('logout') }}">로그아웃</a>
                 {% else %}

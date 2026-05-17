@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-container" style="max-width: 560px;">
+    <h2>마이페이지</h2>
+    <p style="text-align:center; color:#666; margin-bottom:24px;">학번: {{ current_user.student_id }}</p>
+
+    <form method="POST">
+        <div class="form-group">
+            <label>이름</label>
+            <input type="text" name="name" value="{{ current_user.name }}" required>
+        </div>
+        <div class="form-group">
+            <label>이메일</label>
+            <input type="email" name="email" value="{{ current_user.email }}" required>
+        </div>
+        <div class="form-group">
+            <label>입금자명</label>
+            <input type="text" name="depositor_name" value="{{ current_user.depositor_name }}" required>
+            <small>변경 시 다음 입금부터 새 이름으로 보내주세요.</small>
+        </div>
+
+        <hr style="margin: 28px 0; border-color: #eee;">
+        <p style="font-size:14px; color:#666; margin-bottom:16px;">비밀번호를 변경하지 않으려면 새 비밀번호를 비워두세요.</p>
+
+        <div class="form-group">
+            <label>새 비밀번호</label>
+            <div class="password-wrapper">
+                <input type="password" name="new_password" id="new_password" placeholder="변경할 비밀번호 (선택)">
+                <button type="button" class="toggle-password" onclick="togglePassword('new_password')">👁</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>새 비밀번호 확인</label>
+            <div class="password-wrapper">
+                <input type="password" name="new_password2" id="new_password2" placeholder="새 비밀번호 재입력">
+                <button type="button" class="toggle-password" onclick="togglePassword('new_password2')">👁</button>
+            </div>
+        </div>
+
+        <hr style="margin: 28px 0; border-color: #eee;">
+
+        <div class="form-group">
+            <label>현재 비밀번호 <span style="color:#e74c3c;">*</span></label>
+            <div class="password-wrapper">
+                <input type="password" name="current_password" id="current_password" placeholder="수정하려면 현재 비밀번호 입력" required>
+                <button type="button" class="toggle-password" onclick="togglePassword('current_password')">👁</button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">수정 완료</button>
+    </form>
+    <p class="form-footer"><a href="{{ url_for('dashboard') }}">← 내 충전 내역으로</a></p>
+</div>
+{% endblock %}

@@ -1,7 +1,9 @@
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_mail import Mail, Message
 from werkzeug.security import generate_password_hash, check_password_hash
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from datetime import datetime
 import os
 
@@ -9,11 +11,19 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///card_recharge.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'seonbinnam@gmail.com')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', 'seonbinnam@gmail.com')
 
 db = SQLAlchemy(app)
+mail = Mail(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = '로그인이 필요합니다.'
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 
 class User(UserMixin, db.Model):
@@ -39,7 +49,7 @@ class ChargeRequest(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     amount = db.Column(db.Integer, nullable=False)
     deposit_date = db.Column(db.Date, nullable=False)
-    status = db.Column(db.String(20), default='대기중')  # 대기중, 처리완료, 거절
+    status = db.Column(db.String(20), default='대기중')
     reject_reason = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -118,6 +128,44 @@ def dashboard():
         return redirect(url_for('admin_dashboard'))
     requests = ChargeRequest.query.filter_by(user_id=current_user.id).order_by(ChargeRequest.created_at.desc()).all()
     return render_template('dashboard.html', requests=requests)
+
+
+@app.route('/mypage', methods=['GET', 'POST'])
+@login_required
+def mypage():
+    if current_user.is_admin:
+        return redirect(url_for('admin_dashboard'))
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        depositor_name = request.form.get('depositor_name', '').strip()
+        current_password = request.form.get('current_password', '')
+        new_password = request.form.get('new_password', '')
+        new_password2 = request.form.get('new_password2', '')
+
+        if not current_user.check_password(current_password):
+            flash('현재 비밀번호가 올바르지 않습니다.')
+            return render_template('mypage.html')
+
+        if email != current_user.email:
+            if User.query.filter_by(email=email).first():
+                flash('이미 사용 중인 이메일입니다.')
+                return render_template('mypage.html')
+
+        current_user.name = name
+        current_user.email = email
+        current_user.depositor_name = depositor_name
+
+        if new_password:
+            if new_password != new_password2:
+                flash('새 비밀번호가 일치하지 않습니다.')
+                return render_template('mypage.html')
+            current_user.set_password(new_password)
+
+        db.session.commit()
+        flash('정보가 수정되었습니다.')
+        return redirect(url_for('mypage'))
+    return render_template('mypage.html')
 
 
 @app.route('/request/new', methods=['GET', 'POST'])
@@ -230,8 +278,46 @@ def reject_request(request_id):
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
-        flash('비밀번호 재설정 이메일을 발송했습니다. (추후 구현 예정)')
+        email = request.form.get('email', '').strip()
+        user = User.query.filter_by(email=email).first()
+        if user:
+            token = serializer.dumps(email, salt='password-reset')
+            reset_url = url_for('reset_password', token=token, _external=True)
+            try:
+                msg = Message('비밀번호 재설정', recipients=[email])
+                msg.body = f'아래 링크를 클릭하여 비밀번호를 재설정하세요. (1시간 유효)\n\n{reset_url}'
+                mail.send(msg)
+            except Exception:
+                pass
+        flash('이메일이 등록되어 있다면 재설정 링크를 발송했습니다.')
+        return redirect(url_for('login'))
     return render_template('forgot_password.html')
+
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    try:
+        email = serializer.loads(token, salt='password-reset', max_age=3600)
+    except (SignatureExpired, BadSignature):
+        flash('링크가 만료되었거나 유효하지 않습니다.')
+        return redirect(url_for('forgot_password'))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash('사용자를 찾을 수 없습니다.')
+        return redirect(url_for('forgot_password'))
+
+    if request.method == 'POST':
+        new_password = request.form.get('new_password', '')
+        new_password2 = request.form.get('new_password2', '')
+        if new_password != new_password2:
+            flash('비밀번호가 일치하지 않습니다.')
+            return render_template('reset_password.html')
+        user.set_password(new_password)
+        db.session.commit()
+        flash('비밀번호가 재설정되었습니다. 로그인해주세요.')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html')
 
 
 with app.app_context():
