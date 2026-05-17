@@ -15,10 +15,10 @@ db_port = os.environ.get('DB_PORT', '3306')
 db_pass = os.environ.get('MARIADB_ROOT_PASSWORD')
 if db_host and db_pass:
     import pymysql
-    conn = pymysql.connect(unix_socket='/var/run/mysqld/mysqld.sock', user='root', password=db_pass)
+    conn = pymysql.connect(unix_socket='/var/lib/mysql/mariadbd.sock', user='root', password=db_pass)
     conn.cursor().execute('CREATE DATABASE IF NOT EXISTS card_recharge CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci')
     conn.close()
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:{db_pass}@localhost/card_recharge?unix_socket=/var/run/mysqld/mysqld.sock'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:{db_pass}@localhost/card_recharge?unix_socket=/var/lib/mysql/mariadbd.sock'
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///card_recharge.db'
 
