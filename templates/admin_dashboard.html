@@ -45,6 +45,34 @@
         </div>
     {% endif %}
 
+    <h3 style="margin-top: 40px;">가입 학생 목록 ({{ users|length }}명)</h3>
+    {% if users %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>학번</th>
+                    <th>이름</th>
+                    <th>이메일</th>
+                    <th>입금자명</th>
+                    <th>가입일</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.student_id }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.depositor_name }}</td>
+                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state"><p>가입한 학생이 없습니다.</p></div>
+    {% endif %}
+
     <h3 style="margin-top: 40px;">최근 처리 내역</h3>
     {% if completed %}
         <table class="table">

@@ -256,7 +256,8 @@ def admin_dashboard():
         return redirect(url_for('dashboard'))
     pending = ChargeRequest.query.filter_by(status='대기중').order_by(ChargeRequest.created_at.asc()).all()
     completed = ChargeRequest.query.filter(ChargeRequest.status != '대기중').order_by(ChargeRequest.updated_at.desc()).limit(20).all()
-    return render_template('admin_dashboard.html', pending=pending, completed=completed)
+    users = User.query.filter_by(is_admin=False).order_by(User.created_at.desc()).all()
+    return render_template('admin_dashboard.html', pending=pending, completed=completed, users=users)
 
 
 @app.route('/admin/request/<int:request_id>/complete', methods=['POST'])
