@@ -9,7 +9,19 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///card_recharge.db'
+
+db_host = os.environ.get('DB_HOST')
+db_port = os.environ.get('DB_PORT', '3306')
+db_pass = os.environ.get('MARIADB_ROOT_PASSWORD')
+if db_host and db_pass:
+    import pymysql
+    conn = pymysql.connect(host=db_host, port=int(db_port), user='root', password=db_pass)
+    conn.cursor().execute('CREATE DATABASE IF NOT EXISTS card_recharge CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci')
+    conn.close()
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:{db_pass}@{db_host}:{db_port}/card_recharge'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///card_recharge.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
